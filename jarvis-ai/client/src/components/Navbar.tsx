@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Menu, Cpu, Monitor, Volume2, VolumeX, Loader2, Minus, Square, X } from 'lucide-react';
+import { Menu, Cpu, Monitor, Volume2, VolumeX, Loader2, Minus, Square, X, Download, Terminal } from 'lucide-react';
 import { apiClient } from '../services/api';
 
 interface NavbarProps {
@@ -21,6 +21,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [dateStr, setDateStr] = useState<string>('');
   const [isDesktopRunning, setIsDesktopRunning] = useState<boolean>(false);
   const [isLaunching, setIsLaunching] = useState<boolean>(false);
+  const [showSetupModal, setShowSetupModal] = useState<boolean>(false);
 
   // Digital clock update
   useEffect(() => {
@@ -89,6 +90,13 @@ export const Navbar: React.FC<NavbarProps> = ({
       console.warn('Backend desktop launch response:', err);
     } finally {
       setTimeout(() => setIsLaunching(false), 1200);
+    }
+
+    // Show setup modal so new users or users on another PC can download setup-bujji-launcher.bat
+    if (!isDesktopRunning) {
+      setTimeout(() => {
+        setShowSetupModal(true);
+      }, 500);
     }
   };
 
@@ -193,6 +201,17 @@ export const Navbar: React.FC<NavbarProps> = ({
               Click here
             </span>
           </div>
+
+          {/* Quick 1-Click Setup Download Link for other computers */}
+          <a
+            href="/setup-bujji-launcher.bat"
+            download="setup-bujji-launcher.bat"
+            className="hidden xl:flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-mono border border-cyan-500/40 bg-cyan-950/40 text-cyan-300 hover:bg-cyan-900/60 hover:text-cyan-100 transition-all shadow-[0_0_8px_rgba(6,182,212,0.3)] hover:shadow-[0_0_14px_rgba(6,182,212,0.6)]"
+            title="First time on this PC? Download 1-Click Setup"
+          >
+            <Download className="w-3 h-3 text-cyan-400" />
+            <span>Setup (.bat)</span>
+          </a>
         </div>
 
         {/* Audio Output Mute Toggle */}
@@ -245,6 +264,105 @@ export const Navbar: React.FC<NavbarProps> = ({
           </button>
         </div>
       </div>
+
+      {/* BUJJI Desktop Launcher Sync Modal for other users */}
+      {showSetupModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="relative w-full max-w-lg bg-[#050a12] border border-amber-500/40 rounded-2xl p-6 shadow-[0_0_40px_rgba(245,158,11,0.25)] text-slate-200 font-mono">
+            {/* Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-white/10">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.4)]">
+                  <Monitor className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white tracking-wide">
+                    BUJJI Desktop Agent Sync
+                  </h3>
+                  <p className="text-xs text-amber-400/80">Voice &amp; Conversational Intelligence HUD</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowSetupModal(false)}
+                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Launch Status Badge */}
+            <div className="my-4 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center gap-3">
+              <span className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+              </span>
+              <div className="text-xs">
+                <span className="text-amber-300 font-semibold">Launch signal sent: </span>
+                <span className="text-slate-300">Opening <code className="text-amber-200 bg-black/40 px-1 py-0.5 rounded">bujji://launch</code> on your PC...</span>
+              </div>
+            </div>
+
+            {/* If on another PC card */}
+            <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10 space-y-3">
+              <div className="flex items-center gap-2 text-cyan-400 font-bold text-xs uppercase tracking-wider">
+                <Terminal className="w-4 h-4" />
+                <span>Opening on another computer or first time?</span>
+              </div>
+              <p className="text-xs text-slate-300 leading-relaxed font-sans">
+                If the desktop app didn&apos;t appear on your screen, your computer needs the 1-Click setup once to allow this website to launch BUJJI:
+              </p>
+
+              {/* 3 Steps */}
+              <div className="space-y-2 text-xs font-sans text-slate-300 pl-1">
+                <div className="flex items-start gap-2">
+                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-cyan-950 border border-cyan-500/40 text-cyan-300 flex items-center justify-center font-mono font-bold text-[10px]">1</span>
+                  <span>Click below to download <strong>setup-bujji-launcher.bat</strong>.</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-cyan-950 border border-cyan-500/40 text-cyan-300 flex items-center justify-center font-mono font-bold text-[10px]">2</span>
+                  <span>Double-click the downloaded file (it auto-sets up BUJJI &amp; Python in seconds).</span>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-cyan-950 border border-cyan-500/40 text-cyan-300 flex items-center justify-center font-mono font-bold text-[10px]">3</span>
+                  <span>Click <strong>&quot;Launch Desktop Now&quot;</strong> anytime from this site!</span>
+                </div>
+              </div>
+
+              {/* Big Download Button */}
+              <div className="pt-2">
+                <a
+                  href="/setup-bujji-launcher.bat"
+                  download="setup-bujji-launcher.bat"
+                  className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(6,182,212,0.4)] hover:shadow-[0_0_26px_rgba(6,182,212,0.6)]"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>Download 1-Click Setup (setup-bujji-launcher.bat)</span>
+                </a>
+              </div>
+            </div>
+
+            {/* Footer Buttons */}
+            <div className="mt-5 flex items-center justify-between gap-3 pt-3 border-t border-white/10 text-xs">
+              <button
+                onClick={() => {
+                  try { window.location.href = 'bujji://launch'; } catch {}
+                }}
+                className="py-2 px-4 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/40 text-amber-300 font-semibold flex items-center gap-2 transition-colors"
+              >
+                <Monitor className="w-3.5 h-3.5" />
+                <span>Launch Desktop Now</span>
+              </button>
+
+              <button
+                onClick={() => setShowSetupModal(false)}
+                className="py-2 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 };

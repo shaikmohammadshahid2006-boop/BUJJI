@@ -5,7 +5,7 @@
   "description": "JARVIS AI Assistant - Web and Desktop Suite",
   "scripts": {
     "dev": "npm --prefix jarvis-ai/client run dev",
-    "build": "npm --prefix jarvis-ai/client run build",
+    "build": "cd jarvis-ai/client && npm install && npm run build",
     "lint": "npm --prefix jarvis-ai/client run lint",
     "preview": "npm --prefix jarvis-ai/client run preview",
     "client": "npm --prefix jarvis-ai/client run dev",

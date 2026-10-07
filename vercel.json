@@ -1,7 +1,6 @@
 {
   "buildCommand": "cd jarvis-ai/client && npm install && npm run build",
   "outputDirectory": "jarvis-ai/client/dist",
-  "framework": "vite",
   "rewrites": [
     {
       "source": "/(.*)",

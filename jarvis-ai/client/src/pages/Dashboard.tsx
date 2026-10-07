@@ -23,7 +23,6 @@ import { ChatMessage } from '../components/ChatMessage';
 import { Navbar } from '../components/Navbar';
 import { Sidebar } from '../components/Sidebar';
 import { NucleusCore } from '../components/NucleusCore';
-import { VoiceHudModal } from '../components/VoiceHudModal';
 
 interface LogEntry {
   time: string;
@@ -44,7 +43,6 @@ export const Dashboard: React.FC = () => {
   const [activeCenterTab, setActiveCenterTab] = useState<'news' | 'chat'>('news');
   const [newsDismissed, setNewsDismissed] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<{ name: string; size: string } | null>(null);
-  const [isVoiceHudOpen, setIsVoiceHudOpen] = useState(false);
 
   // Activity logs matching the reference image terminal stream
   const [activityLogs, setActivityLogs] = useState<LogEntry[]>([
@@ -323,7 +321,6 @@ export const Dashboard: React.FC = () => {
           autoSpeak={autoSpeak}
           onToggleAutoSpeak={() => setAutoSpeak(!autoSpeak)}
           onTriggerBriefing={() => handleSendCommand('Give me the morning briefing')}
-          onOpenVoiceHud={() => setIsVoiceHudOpen(true)}
         />
 
         {/* MAIN BODY: 2-Part Grid (Center AI & News + Right Activity & Commands) */}
@@ -662,24 +659,6 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* Full-Screen Interactive Voice & Conversational Intelligence HUD Modal */}
-      <VoiceHudModal
-        isOpen={isVoiceHudOpen}
-        onClose={() => setIsVoiceHudOpen(false)}
-        isListening={isListening}
-        isSpeaking={isSpeaking}
-        transcript={transcript}
-        onStartListening={startListening}
-        onStopListening={stopListening}
-        onSendMessage={(text) => handleSendCommand(text)}
-        lastAssistantMessage={
-          messages.filter((m) => m.role === 'assistant').slice(-1)[0]?.content
-        }
-        autoSpeak={autoSpeak}
-        onToggleAutoSpeak={() => setAutoSpeak(!autoSpeak)}
-      />
     </div>
   );
 };
-

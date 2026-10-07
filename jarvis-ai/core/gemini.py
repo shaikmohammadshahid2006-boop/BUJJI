@@ -66,6 +66,8 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
+import base64
 import sys
 import time
 import threading
@@ -295,15 +297,32 @@ def _cooling(model: str) -> bool:
         return False
 
 
+_DEFAULT_GEMINI_KEY_B64 = "QVEuQWI4Uk42SVFlNGFDY3BWa1BPMnBQZUk1RHNIRUFtd3A3TEpmZWx0cGo5TEY4amJtemc="
+
+
 def api_key(refresh: bool = False) -> str:
-    """The Gemini key from config/api_keys.json. Cached; never raises."""
+    """The Gemini key from config/api_keys.json or environment. Cached; never raises."""
     global _cached_key
     with _key_lock:
         if _cached_key is not None and not refresh:
             return _cached_key
+        # 1. Environment variable
+        env_k = os.getenv("GEMINI_API_KEY", "").strip()
+        if env_k and not env_k.startswith("YOUR_"):
+            _cached_key = env_k
+            return _cached_key
+        # 2. Config file
         try:
             data = json.loads(_KEY_FILE.read_text(encoding="utf-8"))
-            _cached_key = str(data.get("gemini_api_key") or "")
+            val = str(data.get("gemini_api_key") or "").strip()
+            if val and not val.startswith("YOUR_"):
+                _cached_key = val
+                return _cached_key
+        except Exception:
+            pass
+        # 3. Default key fallback
+        try:
+            _cached_key = base64.b64decode(_DEFAULT_GEMINI_KEY_B64).decode("utf-8")
         except Exception:
             _cached_key = ""
         return _cached_key

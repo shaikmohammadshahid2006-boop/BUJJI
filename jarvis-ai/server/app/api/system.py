@@ -8,7 +8,10 @@ import subprocess
 import logging
 from pathlib import Path
 from fastapi import APIRouter
-import psutil
+try:
+    import psutil
+except ImportError:
+    psutil = None
 
 from app.services.system_service import SystemService
 from app.services.briefing_service import BriefingService
@@ -23,25 +26,30 @@ MAIN_PY = REPO_ROOT / "main.py"
 
 def _is_desktop_running() -> bool:
     """Checks if main.py desktop application is currently running (excluding server process)."""
+    if not psutil:
+        return False
     current_pid = os.getpid()
-    for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
-        try:
-            if proc.info.get('pid') == current_pid:
-                continue
-            name = (proc.info.get('name') or '').lower()
-            if 'python' in name:
-                cmdline = proc.info.get('cmdline') or []
-                cmd_str = " ".join(cmdline).lower()
-                is_desktop = (
-                    "jarvis-ai\\main.py" in cmd_str
-                    or "jarvis-ai/main.py" in cmd_str
-                    or "desktop" in cmd_str
-                )
-                is_web_or_server = any(w in cmd_str for w in [" web", " server", " client", "uvicorn"])
-                if is_desktop and not is_web_or_server:
-                    return True
-        except (psutil.NoSuchProcess, psutil.AccessDenied):
-            pass
+    try:
+        for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
+            try:
+                if proc.info.get('pid') == current_pid:
+                    continue
+                name = (proc.info.get('name') or '').lower()
+                if 'python' in name:
+                    cmdline = proc.info.get('cmdline') or []
+                    cmd_str = " ".join(cmdline).lower()
+                    is_desktop = (
+                        "jarvis-ai\\main.py" in cmd_str
+                        or "jarvis-ai/main.py" in cmd_str
+                        or "desktop" in cmd_str
+                    )
+                    is_web_or_server = any(w in cmd_str for w in [" web", " server", " client", "uvicorn"])
+                    if is_desktop and not is_web_or_server:
+                        return True
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                pass
+    except Exception:
+        pass
     return False
 
 

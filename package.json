@@ -1,0 +1,16 @@
+{
+  "name": "mark-lv",
+  "version": "1.0.0",
+  "private": true,
+  "description": "JARVIS AI Assistant - Web and Desktop Suite",
+  "scripts": {
+    "dev": "npm --prefix jarvis-ai/client run dev",
+    "build": "npm --prefix jarvis-ai/client run build",
+    "lint": "npm --prefix jarvis-ai/client run lint",
+    "preview": "npm --prefix jarvis-ai/client run preview",
+    "client": "npm --prefix jarvis-ai/client run dev",
+    "server": "python main.py server",
+    "start": "python main.py",
+    "web": "python main.py web"
+  }
+}

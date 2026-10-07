@@ -1,0 +1,7 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./jarvis-ai/client/tsconfig.json" },
+    { "path": "./jarvis-ai/client/tsconfig.node.json" }
+  ]
+}

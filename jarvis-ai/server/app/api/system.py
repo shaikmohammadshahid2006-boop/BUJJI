@@ -100,26 +100,48 @@ async def launch_desktop_main():
         return {
             "success": True,
             "running": True,
-            "message": "JARVIS Desktop HUD (main.py) is already running, sir."
+            "message": "BUJJI Desktop HUD (main.py) is already running, sir."
         }
 
-    if not MAIN_PY.exists():
+    # Headless cloud environment detection (e.g. Render, Railway, AWS without X11)
+    if sys.platform != "win32" and not os.environ.get("DISPLAY"):
         return {
             "success": False,
             "running": False,
-            "message": f"main.py script not found at {MAIN_PY}"
+            "is_cloud": True,
+            "message": "Headless cloud server detected. Live Voice & Conversational Intelligence is active directly in your web browser! On Windows, run 'py main.py' locally to launch the desktop HUD."
+        }
+
+    target_main = None
+    target_cwd = REPO_ROOT
+    for candidate in [
+        REPO_ROOT / "main.py",
+        REPO_ROOT / "jarvis-ai" / "main.py",
+        Path(__file__).resolve().parents[3] / "main.py",
+        Path(__file__).resolve().parents[2] / "main.py",
+    ]:
+        if candidate.exists():
+            target_main = candidate
+            target_cwd = candidate.parent
+            break
+
+    if not target_main:
+        return {
+            "success": False,
+            "running": False,
+            "message": f"main.py script not found at {REPO_ROOT}"
         }
 
     try:
         if sys.platform == "win32":
-            subprocess.Popen(["cmd.exe", "/c", "start", "py", "main.py", "desktop"], cwd=str(REPO_ROOT), shell=True)
+            subprocess.Popen(["cmd.exe", "/c", "start", "py", "main.py", "desktop"], cwd=str(target_cwd), shell=True)
         else:
-            subprocess.Popen([sys.executable, str(MAIN_PY), "desktop"], cwd=str(REPO_ROOT))
-        logger.info(f"Launched desktop application: {MAIN_PY}")
+            subprocess.Popen([sys.executable, str(target_main), "desktop"], cwd=str(target_cwd))
+        logger.info(f"Launched desktop application: {target_main}")
         return {
             "success": True,
             "running": True,
-            "message": "JARVIS Desktop HUD (main.py) initialized successfully, sir."
+            "message": "BUJJI Desktop HUD (main.py) initialized successfully, sir."
         }
     except Exception as e:
         logger.error(f"Failed to launch main.py: {e}", exc_info=True)

@@ -8,6 +8,7 @@ interface NavbarProps {
   autoSpeak: boolean;
   onToggleAutoSpeak: () => void;
   onTriggerBriefing?: () => void;
+  onOpenVoiceHud?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -16,6 +17,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   autoSpeak,
   onToggleAutoSpeak,
   onTriggerBriefing: _onTriggerBriefing,
+  onOpenVoiceHud,
 }) => {
   const [timeStr, setTimeStr] = useState<string>('');
   const [dateStr, setDateStr] = useState<string>('');
@@ -54,6 +56,9 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const handleLaunchDesktop = async () => {
     setIsLaunching(true);
+    if (onOpenVoiceHud) {
+      onOpenVoiceHud();
+    }
     try {
       const res = await apiClient<any>('/api/system/launch-desktop', {
         method: 'POST',
@@ -63,9 +68,9 @@ export const Navbar: React.FC<NavbarProps> = ({
         setIsDesktopRunning(true);
       }
     } catch (err: any) {
-      console.error('Failed to launch desktop:', err);
+      console.warn('Backend desktop launch response:', err);
     } finally {
-      setTimeout(() => setIsLaunching(false), 1200);
+      setTimeout(() => setIsLaunching(false), 800);
     }
   };
 

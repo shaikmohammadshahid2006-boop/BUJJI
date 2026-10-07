@@ -14,7 +14,7 @@ reg add "HKCU\Software\Classes\bujji\shell\open\command" /ve /d "cmd.exe /c cd /
 
 echo.
 echo [SUCCESS] Protocol bujji:// registered successfully!
-echo You can now click [Voice & Conversational Intelligence] on the website
+echo You can now click [Voice ^& Conversational Intelligence] on the website
 echo and it will automatically open py main.py desktop!
 echo.
 pause

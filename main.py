@@ -272,9 +272,11 @@ def main():
     parser.add_argument("--port", type=int, default=8000, help="Port for FastAPI backend (default: 8000)")
     parser.add_argument("--host", type=str, default="0.0.0.0", help="Host for FastAPI backend (default: 0.0.0.0)")
 
-    args = parser.parse_args()
+    args, unknown = parser.parse_known_args()
 
-    if args.desktop or args.action == "desktop":
+    is_protocol = any("bujji://" in str(a).lower() or "jarvis://" in str(a).lower() for a in (sys.argv[1:] + unknown))
+
+    if args.desktop or args.action == "desktop" or is_protocol:
         run_desktop()
     elif args.web or args.action in ("web", "dev"):
         run_web_suite(host=args.host, port=args.port)

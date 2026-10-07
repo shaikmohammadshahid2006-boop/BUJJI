@@ -54,6 +54,27 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const handleLaunchDesktop = async () => {
     setIsLaunching(true);
+
+    // 1. Trigger Windows Custom Protocol Handler (bujji://launch)
+    // Windows immediately launches: py main.py desktop
+    try {
+      window.location.href = 'bujji://launch';
+    } catch {
+      // quiet fallback
+    }
+
+    // 2. Direct local machine bridge (triggers local py main.py web when running)
+    try {
+      await fetch('http://127.0.0.1:8000/api/system/launch-desktop', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      setIsDesktopRunning(true);
+    } catch {
+      // quiet fallback
+    }
+
+    // 3. Remote cloud API endpoint bridge
     try {
       const res = await apiClient<any>('/api/system/launch-desktop', {
         method: 'POST',
@@ -63,7 +84,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         setIsDesktopRunning(true);
       }
     } catch (err: any) {
-      console.error('Failed to launch desktop:', err);
+      console.warn('Backend desktop launch response:', err);
     } finally {
       setTimeout(() => setIsLaunching(false), 1200);
     }

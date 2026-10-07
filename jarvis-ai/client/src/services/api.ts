@@ -1,35 +1,38 @@
 import { supabase } from '../lib/supabase';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE =
+  import.meta.env.VITE_API_URL ||
+  (typeof window !== 'undefined' &&
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    ? 'http://localhost:8000'
+    : 'https://bujji-backend.onrender.com');
 
 interface RequestOptions extends RequestInit {
   requiresAuth?: boolean;
 }
 
 export async function apiClient<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-  const { requiresAuth = true, headers = {}, ...rest } = options;
+  const { requiresAuth = false, headers = {}, ...rest } = options;
 
   const requestHeaders: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(headers as Record<string, string>),
   };
 
-  if (requiresAuth) {
-    try {
-      const { data } = await supabase.auth.getSession();
-      const token = data?.session?.access_token;
-      if (token) {
-        requestHeaders['Authorization'] = `Bearer ${token}`;
-      } else {
-        // Look in localStorage as fallback
-        const localToken = localStorage.getItem('jarvis_auth_token');
-        if (localToken) {
-          requestHeaders['Authorization'] = `Bearer ${localToken}`;
-        }
+  // Always attempt to attach token if present
+  try {
+    const { data } = await supabase.auth.getSession();
+    const token = data?.session?.access_token;
+    if (token) {
+      requestHeaders['Authorization'] = `Bearer ${token}`;
+    } else {
+      const localToken = localStorage.getItem('jarvis_auth_token');
+      if (localToken) {
+        requestHeaders['Authorization'] = `Bearer ${localToken}`;
       }
-    } catch (err) {
-      console.warn('Could not retrieve Supabase session token:', err);
     }
+  } catch (err) {
+    console.warn('Could not retrieve Supabase session token:', err);
   }
 
   const url = `${API_BASE}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;

@@ -40,12 +40,8 @@ app = FastAPI(
 # In development, dynamically permit any local/LAN origin.
 # In production, ALLOWED_ORIGINS should only include the deployed frontend domain.
 logger.info(f"Configuring CORS with allowed origins: {settings.allowed_origins}")
-if "*" in settings.allowed_origins or settings.environment == "development":
-    cors_origin_regex = r"^https?://.*$"
-    effective_origins = [o for o in settings.allowed_origins if o != "*"]
-else:
-    cors_origin_regex = None
-    effective_origins = settings.allowed_origins
+cors_origin_regex = r"^https?://.*$"
+effective_origins = [o for o in settings.allowed_origins if o != "*"]
 
 app.add_middleware(
     CORSMiddleware,

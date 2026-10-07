@@ -64,14 +64,16 @@ export const Navbar: React.FC<NavbarProps> = ({
     }
 
     // 2. Direct local machine bridge (triggers local py main.py web when running)
-    try {
-      await fetch('http://127.0.0.1:8000/api/system/launch-desktop', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      setIsDesktopRunning(true);
-    } catch {
-      // quiet fallback
+    if (typeof window !== 'undefined' && (window.location.protocol === 'http:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+      try {
+        await fetch('http://127.0.0.1:8000/api/system/launch-desktop', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        setIsDesktopRunning(true);
+      } catch {
+        // quiet fallback
+      }
     }
 
     // 3. Remote cloud API endpoint bridge

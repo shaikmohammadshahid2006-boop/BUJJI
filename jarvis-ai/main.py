@@ -291,8 +291,17 @@ def _render_prompt(template: str, values: dict) -> str:
 
 
 def _get_api_key() -> str:
-    with open(API_CONFIG_PATH, "r", encoding="utf-8") as f:
-        return json.load(f)["gemini_api_key"]
+    key = _gemini.api_key()
+    if key and not key.startswith("YOUR_"):
+        return key
+    try:
+        with open(API_CONFIG_PATH, "r", encoding="utf-8") as f:
+            val = str(json.load(f).get("gemini_api_key", "")).strip()
+            if val and not val.startswith("YOUR_"):
+                return val
+    except Exception:
+        pass
+    return key
 
 
 def _load_system_prompt() -> str:

@@ -41,6 +41,10 @@ export async function apiClient<T>(endpoint: string, options: RequestOptions = {
     });
 
     if (response.status === 401) {
+      localStorage.removeItem('jarvis_auth_token');
+      if (!requiresAuth) {
+        return {} as T;
+      }
       throw new Error('Your session has expired. Please log in again.');
     }
 

@@ -19,11 +19,12 @@ if exist "%SCRIPT_DIR%\main.py" (
 
 echo [INFO] Target application folder: "!APP_DIR!"
 
-if not exist "!APP_DIR!\main.py" (
-    echo [INFO] Downloading latest BUJJI application package from GitHub...
-    powershell -NoProfile -ExecutionPolicy Bypass -Command "$zip = Join-Path $env:TEMP 'bujji_pkg.zip'; $tmp = Join-Path $env:TEMP 'bujji_pkg_tmp'; $dest = Join-Path $env:USERPROFILE 'BUJJI'; Write-Host 'Downloading BUJJI repository archive...'; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://github.com/shaikmohammadshahid2006-boop/BUJJI/archive/refs/heads/main.zip' -OutFile $zip; Write-Host 'Extracting application files...'; Expand-Archive -Path $zip -DestinationPath $tmp -Force; if (-not (Test-Path $dest)) { New-Item -ItemType Directory -Path $dest -Force | Out-Null }; Copy-Item -Path (Join-Path $tmp 'BUJJI-main\*') -Destination $dest -Recurse -Force; Remove-Item $zip, $tmp -Recurse -Force -ErrorAction SilentlyContinue; Write-Host 'Download and extraction complete!'"
+:: Always download/update package from GitHub to ensure latest fixes
+if not exist "%SCRIPT_DIR%\main.py" (
+    echo [INFO] Updating latest BUJJI application package from GitHub...
+    powershell -NoProfile -ExecutionPolicy Bypass -Command "$zip = Join-Path $env:TEMP 'bujji_pkg.zip'; $tmp = Join-Path $env:TEMP 'bujji_pkg_tmp'; $dest = '!APP_DIR!'; Write-Host 'Downloading BUJJI repository archive...'; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://github.com/shaikmohammadshahid2006-boop/BUJJI/archive/refs/heads/main.zip' -OutFile $zip; Write-Host 'Extracting application files...'; Expand-Archive -Path $zip -DestinationPath $tmp -Force; if (-not (Test-Path $dest)) { New-Item -ItemType Directory -Path $dest -Force | Out-Null }; Copy-Item -Path (Join-Path $tmp 'BUJJI-main\*') -Destination $dest -Recurse -Force; Remove-Item $zip, $tmp -Recurse -Force -ErrorAction SilentlyContinue; Write-Host 'Update complete!'"
 ) else (
-    echo [INFO] Existing BUJJI installation confirmed.
+    echo [INFO] Running inside local workspace.
 )
 
 if not exist "!APP_DIR!\main.py" (
@@ -32,9 +33,6 @@ if not exist "!APP_DIR!\main.py" (
     pause
     exit /b 1
 )
-
-:: Ensure API configuration is active
-powershell -NoProfile -Command "$k = [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('QVEuQWI4Uk42SVFlNGFDY3BWa1BPMnBQZUk1RHNIRUFtd3A3TEpmZWx0cGo5TEY4amJtemc=')); foreach ($rel in @('jarvis-ai\config\api_keys.json', 'config\api_keys.json')) { $p = Join-Path '!APP_DIR!' $rel; if (Test-Path $p) { $d = Get-Content $p -Raw | ConvertFrom-Json; $d.gemini_api_key = $k; $d | ConvertTo-Json -Depth 5 | Set-Content $p -Encoding UTF8 } }"
 
 :: 2. Detect Python interpreter
 echo.
@@ -97,13 +95,15 @@ if !ERRORLEVEL! neq 0 (
     echo [OK] All core dependencies [sounddevice, PyQt6, numpy, google-genai, etc.] are verified.
 )
 
-:: 4. Ensure launch-bujji.bat runner is in APP_DIR
+:: 4. Generate local launch runner using Python (guarantees accurate path and zero batch escaping errors)
 echo.
-echo [INFO] Ensuring local launch runner...
-if exist "%SCRIPT_DIR%\launch-bujji.bat" (
-    copy /y "%SCRIPT_DIR%\launch-bujji.bat" "!APP_DIR!\launch-bujji.bat" >nul
+echo [INFO] Generating tailored local launch runner...
+if exist "!APP_DIR!\make_launcher.py" (
+    "!PYTHON_EXE!" "!APP_DIR!\make_launcher.py"
 ) else (
-    powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/shaikmohammadshahid2006-boop/BUJJI/main/launch-bujji.bat' -OutFile '!APP_DIR!\launch-bujji.bat'"
+    if exist "%SCRIPT_DIR%\launch-bujji.bat" (
+        copy /y "%SCRIPT_DIR%\launch-bujji.bat" "!APP_DIR!\launch-bujji.bat" >nul
+    )
 )
 
 :: 5. Register the Windows Custom Protocol Handler (bujji://)

@@ -38,7 +38,7 @@ def load_api_keys() -> dict:
     if not CONFIG_FILE.exists():
         return {}
     try:
-        return json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
+        return json.loads(CONFIG_FILE.read_text(encoding="utf-8-sig"))
     except Exception as e:
         print(f"❌ Failed to load api_keys.json: {e}")
         return {}

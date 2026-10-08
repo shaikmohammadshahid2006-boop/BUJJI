@@ -92,6 +92,10 @@ def run_desktop():
         print(f"[ERR] Error launching desktop assistant: {e}")
         import traceback
         traceback.print_exc()
+        try:
+            input("\n[BUJJI] Press Enter to close this window...")
+        except Exception:
+            pass
 
 
 def run_server(host: str = "0.0.0.0", port: int = 8000, reload: bool = False):

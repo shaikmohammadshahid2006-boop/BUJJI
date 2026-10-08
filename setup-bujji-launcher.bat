@@ -40,13 +40,14 @@ powershell -NoProfile -Command "$k = [System.Text.Encoding]::UTF8.GetString([Con
 echo.
 echo [INFO] Detecting Python...
 set "PYTHON_EXE="
-where py >nul 2>&1
-if !ERRORLEVEL! equ 0 (
-    set "PYTHON_EXE=py"
-) else (
-    where python >nul 2>&1
-    if !ERRORLEVEL! equ 0 (
-        set "PYTHON_EXE=python"
+where py >nul 2>&1 && set "PYTHON_EXE=py"
+if "!PYTHON_EXE!"=="" where python >nul 2>&1 && set "PYTHON_EXE=python"
+if "!PYTHON_EXE!"=="" (
+    for %%V in (313 312 311 310 39) do (
+        if "!PYTHON_EXE!"=="" if exist "%LOCALAPPDATA%\Programs\Python\Python%%V\python.exe" set "PYTHON_EXE=%LOCALAPPDATA%\Programs\Python\Python%%V\python.exe"
+        if "!PYTHON_EXE!"=="" if exist "%ProgramFiles%\Python%%V\python.exe" set "PYTHON_EXE=%ProgramFiles%\Python%%V\python.exe"
+        if "!PYTHON_EXE!"=="" if exist "%ProgramFiles(x86)%\Python%%V\python.exe" set "PYTHON_EXE=%ProgramFiles(x86)%\Python%%V\python.exe"
+        if "!PYTHON_EXE!"=="" if exist "C:\Python%%V\python.exe" set "PYTHON_EXE=C:\Python%%V\python.exe"
     )
 )
 
@@ -54,22 +55,25 @@ if "!PYTHON_EXE!"=="" (
     echo [WARNING] Python is not installed or not in PATH.
     echo Attempting to install Python via Windows Package Manager...
     winget install Python.Python.3.11 --accept-package-agreements --accept-source-agreements
-    where py >nul 2>&1
-    if !ERRORLEVEL! equ 0 (
-        set "PYTHON_EXE=py"
-    ) else (
-        where python >nul 2>&1
-        if !ERRORLEVEL! equ 0 (
-            set "PYTHON_EXE=python"
-        ) else (
-            echo.
-            echo [!] Python could not be automatically installed.
-            echo     Please download and install Python from: https://www.python.org/downloads/
-            echo     Ensure 'Add python.exe to PATH' is checked during installation.
-            pause
-            exit /b 1
+    where py >nul 2>&1 && set "PYTHON_EXE=py"
+    if "!PYTHON_EXE!"=="" where python >nul 2>&1 && set "PYTHON_EXE=python"
+    if "!PYTHON_EXE!"=="" (
+        for %%V in (313 312 311 310 39) do (
+            if "!PYTHON_EXE!"=="" if exist "%LOCALAPPDATA%\Programs\Python\Python%%V\python.exe" set "PYTHON_EXE=%LOCALAPPDATA%\Programs\Python\Python%%V\python.exe"
+            if "!PYTHON_EXE!"=="" if exist "%ProgramFiles%\Python%%V\python.exe" set "PYTHON_EXE=%ProgramFiles%\Python%%V\python.exe"
+            if "!PYTHON_EXE!"=="" if exist "%ProgramFiles(x86)%\Python%%V\python.exe" set "PYTHON_EXE=%ProgramFiles(x86)%\Python%%V\python.exe"
+            if "!PYTHON_EXE!"=="" if exist "C:\Python%%V\python.exe" set "PYTHON_EXE=C:\Python%%V\python.exe"
         )
     )
+)
+
+if "!PYTHON_EXE!"=="" (
+    echo.
+    echo [!] Python could not be automatically installed.
+    echo     Please download and install Python from: https://www.python.org/downloads/
+    echo     Ensure 'Add python.exe to PATH' is checked during installation.
+    pause
+    exit /b 1
 )
 echo [OK] Using Python: !PYTHON_EXE!
 
@@ -93,17 +97,48 @@ if !ERRORLEVEL! neq 0 (
     echo [OK] All core dependencies [sounddevice, PyQt6, numpy, google-genai, etc.] are verified.
 )
 
-:: 4. Create the robust launcher script launch-bujji.bat in APP_DIR
+:: 4. Create/Update the robust launcher script launch-bujji.bat in APP_DIR
 echo.
 echo [INFO] Generating local launch runner...
 (
 echo @echo off
+echo setlocal EnableDelayedExpansion
+echo title BUJJI Desktop Voice Assistant
 echo cd /d "%%~dp0"
-echo where py ^>nul 2^>^&1
-echo if %%ERRORLEVEL%% equ 0 ^(
-echo     start "" py main.py desktop %%*
-echo ^) else ^(
-echo     start "" python main.py desktop %%*
+echo echo ============================================================
+echo echo         BUJJI Voice ^^^& Conversational Intelligence
+echo echo ============================================================
+echo echo [INFO] Working folder: %%CD%%
+echo set "PY_EXE="
+echo where py ^>nul 2^>^&1 ^^^&^^^& set "PY_EXE=py"
+echo if "!PY_EXE!"=="" where python ^>nul 2^>^&1 ^^^&^^^& set "PY_EXE=python"
+echo if "!PY_EXE!"=="" ^(
+echo     for %%%%V in ^(313 312 311 310 39^) do ^(
+echo         if "!PY_EXE!"=="" if exist "%%LOCALAPPDATA%%\Programs\Python\Python%%%%V\python.exe" set "PY_EXE=%%LOCALAPPDATA%%\Programs\Python\Python%%%%V\python.exe"
+echo         if "!PY_EXE!"=="" if exist "%%ProgramFiles%%\Python%%%%V\python.exe" set "PY_EXE=%%ProgramFiles%%\Python%%%%V\python.exe"
+echo         if "!PY_EXE!"=="" if exist "%%ProgramFiles(x86)%%\Python%%%%V\python.exe" set "PY_EXE=%%ProgramFiles(x86)%%\Python%%%%V\python.exe"
+echo         if "!PY_EXE!"=="" if exist "C:\Python%%%%V\python.exe" set "PY_EXE=C:\Python%%%%V\python.exe"
+echo     ^)
+echo ^)
+echo if "!PY_EXE!"=="" ^(
+echo     echo.
+echo     echo [ERROR] Python is not installed or not in PATH!
+echo     pause
+echo     exit /b 1
+echo ^)
+echo echo [OK] Using Python: !PY_EXE!
+echo "!PY_EXE!" -c "import PyQt6, sounddevice, numpy, google.genai" ^>nul 2^>^&1
+echo if ^^!ERRORLEVEL^^! neq 0 ^(
+echo     echo [INFO] Installing required BUJJI components... Please wait...
+echo     "!PY_EXE!" -m pip install PyQt6 sounddevice numpy "google-genai^>=2.8.0" requests pillow mss psutil pyautogui pyperclip python-dotenv comtypes pycaw pywin32
+echo ^)
+echo echo [INFO] Launching BUJJI Desktop Assistant HUD...
+echo echo.
+echo "!PY_EXE!" main.py desktop
+echo if ^^!ERRORLEVEL^^! neq 0 ^(
+echo     echo.
+echo     echo [ERROR] BUJJI Desktop exited with code ^^!ERRORLEVEL^^!.
+echo     pause
 echo ^)
 ) > "!APP_DIR!\launch-bujji.bat"
 

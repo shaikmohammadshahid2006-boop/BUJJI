@@ -97,50 +97,14 @@ if !ERRORLEVEL! neq 0 (
     echo [OK] All core dependencies [sounddevice, PyQt6, numpy, google-genai, etc.] are verified.
 )
 
-:: 4. Create/Update the robust launcher script launch-bujji.bat in APP_DIR
+:: 4. Ensure launch-bujji.bat runner is in APP_DIR
 echo.
-echo [INFO] Generating local launch runner...
-(
-echo @echo off
-echo setlocal EnableDelayedExpansion
-echo title BUJJI Desktop Voice Assistant
-echo cd /d "%%~dp0"
-echo echo ============================================================
-echo echo         BUJJI Voice ^^^& Conversational Intelligence
-echo echo ============================================================
-echo echo [INFO] Working folder: %%CD%%
-echo set "PY_EXE="
-echo where py ^>nul 2^>^&1 ^^^&^^^& set "PY_EXE=py"
-echo if "!PY_EXE!"=="" where python ^>nul 2^>^&1 ^^^&^^^& set "PY_EXE=python"
-echo if "!PY_EXE!"=="" ^(
-echo     for %%%%V in ^(313 312 311 310 39^) do ^(
-echo         if "!PY_EXE!"=="" if exist "%%LOCALAPPDATA%%\Programs\Python\Python%%%%V\python.exe" set "PY_EXE=%%LOCALAPPDATA%%\Programs\Python\Python%%%%V\python.exe"
-echo         if "!PY_EXE!"=="" if exist "%%ProgramFiles%%\Python%%%%V\python.exe" set "PY_EXE=%%ProgramFiles%%\Python%%%%V\python.exe"
-echo         if "!PY_EXE!"=="" if exist "%%ProgramFiles(x86)%%\Python%%%%V\python.exe" set "PY_EXE=%%ProgramFiles(x86)%%\Python%%%%V\python.exe"
-echo         if "!PY_EXE!"=="" if exist "C:\Python%%%%V\python.exe" set "PY_EXE=C:\Python%%%%V\python.exe"
-echo     ^)
-echo ^)
-echo if "!PY_EXE!"=="" ^(
-echo     echo.
-echo     echo [ERROR] Python is not installed or not in PATH!
-echo     pause
-echo     exit /b 1
-echo ^)
-echo echo [OK] Using Python: !PY_EXE!
-echo "!PY_EXE!" -c "import PyQt6, sounddevice, numpy, google.genai" ^>nul 2^>^&1
-echo if ^^!ERRORLEVEL^^! neq 0 ^(
-echo     echo [INFO] Installing required BUJJI components... Please wait...
-echo     "!PY_EXE!" -m pip install PyQt6 sounddevice numpy "google-genai^>=2.8.0" requests pillow mss psutil pyautogui pyperclip python-dotenv comtypes pycaw pywin32
-echo ^)
-echo echo [INFO] Launching BUJJI Desktop Assistant HUD...
-echo echo.
-echo "!PY_EXE!" main.py desktop
-echo if ^^!ERRORLEVEL^^! neq 0 ^(
-echo     echo.
-echo     echo [ERROR] BUJJI Desktop exited with code ^^!ERRORLEVEL^^!.
-echo     pause
-echo ^)
-) > "!APP_DIR!\launch-bujji.bat"
+echo [INFO] Ensuring local launch runner...
+if exist "%SCRIPT_DIR%\launch-bujji.bat" (
+    copy /y "%SCRIPT_DIR%\launch-bujji.bat" "!APP_DIR!\launch-bujji.bat" >nul
+) else (
+    powershell -NoProfile -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/shaikmohammadshahid2006-boop/BUJJI/main/launch-bujji.bat' -OutFile '!APP_DIR!\launch-bujji.bat'"
+)
 
 :: 5. Register the Windows Custom Protocol Handler (bujji://)
 echo [INFO] Registering bujji:// web protocol in Windows Registry...

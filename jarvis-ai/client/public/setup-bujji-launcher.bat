@@ -73,15 +73,24 @@ if "!PYTHON_EXE!"=="" (
 )
 echo [OK] Using Python: !PYTHON_EXE!
 
-:: 3. Ensure required GUI modules
+:: 3. Ensure all required Python dependencies (sounddevice, PyQt6, numpy, google-genai, etc.)
 echo.
 echo [INFO] Checking Python dependencies...
-"!PYTHON_EXE!" -c "import PyQt6" >nul 2>&1
+"!PYTHON_EXE!" -c "import PyQt6, sounddevice, numpy, google.genai, requests, PIL, psutil" >nul 2>&1
 if !ERRORLEVEL! neq 0 (
-    echo [INFO] Installing required GUI libraries [PyQt6, requests, python-dotenv]...
-    "!PYTHON_EXE!" -m pip install PyQt6 requests python-dotenv
+    echo [INFO] Installing all BUJJI dependencies [sounddevice, PyQt6, numpy, google-genai, etc.]...
+    echo [INFO] This downloads all audio, GUI, and action modules for your PC. Please wait...
+    
+    if exist "!APP_DIR!\jarvis-ai\requirements.txt" (
+        "!PYTHON_EXE!" -m pip install -r "!APP_DIR!\jarvis-ai\requirements.txt"
+    ) else if exist "!APP_DIR!\requirements.txt" (
+        "!PYTHON_EXE!" -m pip install -r "!APP_DIR!\requirements.txt"
+    )
+
+    :: Guarantee core audio, GUI, and Live AI packages are installed without fail
+    "!PYTHON_EXE!" -m pip install PyQt6 sounddevice numpy "google-genai>=2.8.0" requests pillow mss psutil pyautogui pyperclip python-dotenv comtypes pycaw pywin32
 ) else (
-    echo [OK] PyQt6 is already installed.
+    echo [OK] All core dependencies [sounddevice, PyQt6, numpy, google-genai, etc.] are verified.
 )
 
 :: 4. Create the robust launcher script launch-bujji.bat in APP_DIR
